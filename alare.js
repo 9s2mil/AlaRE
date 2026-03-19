@@ -163,18 +163,22 @@ rgba(216,160,17,0.8) 100%
                 pop.innerHTML = `
         <div class="settingWrap">
 
-            <button class="settingBtn">
-                저장하기
-            </button>
+<button class="settingBtn" id="exportBtn">
+    저장하기
+</button>
 
-            <button class="settingBtn">
-                불러오기
-            </button>
+<button class="settingBtn" id="importBtn">
+    불러오기
+</button>
 
         </div>
         `
 
                 document.getElementById("mainArea").appendChild(pop)
+
+                pop.querySelector("#exportBtn").onclick = exportData
+                pop.querySelector("#importBtn").onclick = openImport
+
             }
 
             pop.classList.add("show")
@@ -711,6 +715,7 @@ function openScreen(btnData, index) {
     lines = btnData.lines
 
     renderLines()
+    updateFilterBtnUI() 
 
     screen.style.display = "block"
     history.pushState({ screen: true }, "")
@@ -791,14 +796,50 @@ function openScreen(btnData, index) {
 
 
 let lines = []
+let viewFilter = {
+    h1: true,
+    h2: true,
+    h3: true,
+    h4: true
+}
 
+const filterModes = [
+    { h1: true, h2: true, h3: true, h4: true },
+    { h1: true, h2: false, h3: false, h4: false },
+    { h1: true, h2: true, h3: false, h4: false },
+    { h1: true, h2: true, h3: true, h4: false }
+]
+
+let filterIndex = 0
+
+const savedFilter = localStorage.getItem("viewFilter")
+if (savedFilter) {
+    viewFilter = JSON.parse(savedFilter)
+
+    filterIndex = filterModes.findIndex(f =>
+        JSON.stringify(f) === JSON.stringify(viewFilter)
+    )
+
+    if (filterIndex === -1) filterIndex = 0
+}
 document.getElementById("addLineBtn").onclick = () => {
-    lines.push({ text: "", level: 0 })
+    lines.push({ text: "", level: 0, collapsed: false })
     save()
     renderLines()
 }
 
 function renderLines() {
+
+    let needSave = false
+
+    lines.forEach(line => {
+        if (line.collapsed === undefined) {
+            line.collapsed = false
+            needSave = true
+        }
+    })
+
+    if (needSave) save()
 
     const body = document.getElementById("screenBody")
     body.innerHTML = ""
@@ -809,6 +850,7 @@ function renderLines() {
 
 wrap.innerHTML = `
 <div class="lineControls" style="display:flex; gap:6px; margin-bottom:6px;">
+    <button class="miniBtn toggle">▾</button>
     <button class="miniBtn left">←</button>
     <button class="miniBtn right">→</button>
     <button class="miniBtn del">X</button>
@@ -844,6 +886,16 @@ style="padding-left:${line.level * 20}px"></div>
         if (line.level === 1) el.classList.add("h2")
         if (line.level === 2) el.classList.add("h3")
         if (line.level >= 3) el.classList.add("h4")
+
+        const toggleBtn = wrap.querySelector(".toggle")
+
+        toggleBtn.innerText = line.collapsed ? "▸" : "▾"
+
+        toggleBtn.onclick = () => {
+            line.collapsed = !line.collapsed
+            save()
+            renderLines()
+        }
 
         /* → */
         wrap.querySelector(".right").onclick = () => {
@@ -891,7 +943,86 @@ style="padding-left:${line.level * 20}px"></div>
             showLineControls = false
         }
     })
- 
+    applyFilter()
+}
+function applyFilter() {
+    document.querySelectorAll("#screenBody > div").forEach((wrap, i) => {
+
+        const line = lines[i]
+        if (!line) return
+
+        const levelClass = "h" + Math.min(line.level + 1, 4)
+        const visibleByFilter = viewFilter[levelClass]
+
+        const input = wrap.querySelector(".lineInput")
+        const toggleBtn = wrap.querySelector(".toggle")
+        const leftBtn = wrap.querySelector(".left")
+        const rightBtn = wrap.querySelector(".right")
+        const delBtn = wrap.querySelector(".del")
+        const controls = wrap.querySelector(".lineControls")
+
+        /* 1️⃣ 필터로 전체 숨김 */
+        if (!visibleByFilter) {
+            wrap.style.display = "none"
+            return
+        }
+
+        /* 2️⃣ 기본 표시 */
+        wrap.style.display = "block"
+
+        /* 3️⃣ 접힘 상태 */
+        if (line.collapsed) {
+
+            const indent = line.level * 20
+
+            // 데이터 숨김
+            if (input) input.style.display = "none"
+
+            // 버튼 숨김
+            if (leftBtn) leftBtn.style.display = "none"
+            if (rightBtn) rightBtn.style.display = "none"
+            if (delBtn) delBtn.style.display = "none"
+
+            // ⭐ 토글 버튼 들여쓰기 적용
+            if (toggleBtn) {
+                toggleBtn.style.display = "inline-block"
+                toggleBtn.style.marginLeft = indent + "px"
+            }
+
+            if (controls) controls.style.justifyContent = "flex-start"
+
+        } else {
+
+            // 데이터 표시
+            if (input) input.style.display = "block"
+
+            // 버튼 표시
+            if (leftBtn) leftBtn.style.display = "inline-block"
+            if (rightBtn) rightBtn.style.display = "inline-block"
+            if (delBtn) delBtn.style.display = "inline-block"
+
+            // ⭐ 토글 버튼 원상복구
+            if (toggleBtn) {
+                toggleBtn.style.display = "inline-block"
+                toggleBtn.style.marginLeft = "0px"
+            }
+
+            if (controls) controls.style.justifyContent = "flex-start"
+        }
+    })
+}
+function updateFilterBtnUI() {
+    const btn = document.getElementById("filterBtn")
+
+    if (!viewFilter.h2 && !viewFilter.h3 && !viewFilter.h4) {
+        btn.innerText = "1"
+    } else if (!viewFilter.h3 && !viewFilter.h4) {
+        btn.innerText = "1-2"
+    } else if (!viewFilter.h4) {
+        btn.innerText = "1-3"
+    } else {
+        btn.innerText = "📊"
+    }
 }
 
 let showLineControls = true
@@ -907,4 +1038,172 @@ document.getElementById("eyeBtn").onclick = () => {
     })
 
     localStorage.setItem("showLineControls", showLineControls ? "1" : "0")
+}
+
+
+document.getElementById("filterBtn").onclick = () => {
+
+    filterIndex = (filterIndex + 1) % filterModes.length
+    viewFilter = filterModes[filterIndex]
+
+    localStorage.setItem("viewFilter", JSON.stringify(viewFilter))
+
+    applyFilter()
+    updateFilterBtnUI()
+}
+
+document.getElementById("mapBtn").onclick = () => {
+
+    // 🔥 1. 필터 초기화
+    viewFilter = { h1: true, h2: true, h3: true, h4: true }
+    localStorage.removeItem("viewFilter")
+    filterIndex = 0
+
+    // 🔥 2. 전부 펼치기 (핵심)
+    lines.forEach(line => {
+        line.collapsed = false
+    })
+
+    save()
+
+    // 🔥 3. 렌더
+    renderLines()
+    updateFilterBtnUI()
+
+    document.getElementById("noteScreen").scrollTop = 0
+}
+
+function exportData() {
+
+    const password = prompt("백업 비밀번호 입력")
+    if (!password) return
+
+    const data = {
+        folders: folders,
+        viewFilter: viewFilter
+    }
+
+    const json = JSON.stringify(data)
+
+    // ⭐ 암호화
+    const encrypted = CryptoJS.AES.encrypt(json, password).toString()
+
+    const blob = new Blob([encrypted], { type: "text/plain" })
+    const url = URL.createObjectURL(blob)
+
+    const a = document.createElement("a")
+    const date = new Date().toISOString().slice(0, 10)
+
+    a.href = url
+    a.download = `outline-secure-${date}.txt`
+    a.click()
+
+    URL.revokeObjectURL(url)
+}
+
+function importData(file) {
+
+    const password = prompt("비밀번호 입력")
+    if (!password) return
+
+    const reader = new FileReader()
+
+    reader.onload = () => {
+
+        try {
+
+            // ⭐ 복호화
+            const decrypted = CryptoJS.AES.decrypt(reader.result, password)
+            const json = decrypted.toString(CryptoJS.enc.Utf8)
+
+            if (!json) {
+                alert("❌ 비밀번호 틀림")
+                return
+            }
+
+            let data = JSON.parse(json)
+
+            data = normalizeData(data)
+
+            if (!data) {
+                alert("잘못된 파일")
+                return
+            }
+
+            folders = data.folders
+
+            if (data.viewFilter) {
+                viewFilter = data.viewFilter
+                localStorage.setItem("viewFilter", JSON.stringify(viewFilter))
+            }
+
+            save()
+            render()
+
+            alert("복원 완료")
+
+        } catch (e) {
+            alert("파일 오류 또는 비밀번호 틀림")
+        }
+    }
+
+    reader.readAsText(file)
+}
+
+function openImport() {
+    const input = document.createElement("input")
+    input.type = "file"
+    input.accept = ".txt"
+
+    input.onchange = () => {
+        const file = input.files[0]
+        if (file) importData(file)
+    }
+
+    input.click()
+}
+
+function normalizeData(data) {
+
+    if (!data.folders || !Array.isArray(data.folders)) {
+        return null
+    }
+
+    data.folders.forEach(folder => {
+
+        // buttons 보정
+        if (!folder.buttons || !Array.isArray(folder.buttons)) {
+            folder.buttons = []
+        }
+
+        folder.buttons.forEach(btn => {
+
+            // lines 보정
+            if (!btn.lines || !Array.isArray(btn.lines)) {
+                btn.lines = []
+            }
+
+            btn.lines.forEach(line => {
+
+                // text
+                if (typeof line.text !== "string") {
+                    line.text = ""
+                }
+
+                // level 보정 (0~3 제한)
+                if (typeof line.level !== "number") {
+                    line.level = 0
+                }
+                line.level = Math.max(0, Math.min(line.level, 3))
+
+                // collapsed 보정
+                if (line.collapsed === undefined) {
+                    line.collapsed = false
+                }
+
+            })
+        })
+    })
+
+    return data
 }

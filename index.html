@@ -36,12 +36,18 @@
 
 <div id="noteScreen">
     <div id="screenHeader">
-        <button id="addLineBtn">+</button>
-        <button id="eyeBtn">👁</button>
-        <span id="screenTitle">제목</span>
-        <button id="closeScreen">X</button>
-    </div>
 
+        <span id="screenTitle">제목</span>
+
+        <div class="headerRight">
+            <button class="headerBtn" id="addLineBtn">➕</button>
+            <button class="headerBtn" id="eyeBtn">🔍</button>
+            <button class="headerBtn" id="filterBtn">📊</button>
+            <button class="headerBtn" id="mapBtn">🗺️</button>
+            <button class="headerBtn" id="closeScreen">❌</button>
+        </div>
+
+    </div>
     <div id="screenBody"></div>
 </div>
 
@@ -73,5 +79,7 @@
 <div id="toastMsg"></div>
 
 <script src="alare.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/crypto-js@4.2.0/crypto-js.min.js"></script>
+
 </body>
 </html>

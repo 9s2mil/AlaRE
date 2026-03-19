@@ -79,15 +79,7 @@ background: linear-gradient(135deg,
     top: 0;
     width: 100%;
     height: 100%;
-    /* background:linear-gradient(
-    135deg,
-    rgba(255,255,255,1) 0%,
-    rgba(238,238,238,1) 25%,
-    rgba(252,252,252,1) 35%,
-    rgba(235,235,235,1) 50%,
-    rgba(248,248,248,1) 75%,
-    rgba(245,245,245,1) 100%
-  ); */
+
     background: linear-gradient(135deg,
             rgba(5, 45, 18, 0.95) 0%,
             rgba(10, 90, 35, 0.92) 30%,
@@ -226,21 +218,100 @@ height: 32px;
 
 #screenHeader {
     height: 60px;
-    background: #222;
+background: linear-gradient(135deg,
+            rgba(15, 15, 15, 1) 0%,
+            rgba(40, 40, 40, 1) 30%,
+            rgba(70, 70, 70, 1) 48%,
+            rgba(20, 20, 20, 1) 52%,
+            rgba(90, 90, 90, 1) 70%,
+            rgba(10, 10, 10, 1) 100%);
     color: #fff;
+
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 0 16px;
+
+    padding: 0 12px;
 }
 
+/* 제목 (왼쪽 고정) */
+#screenTitle {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+/* 오른쪽 버튼 묶음 */
+.headerRight {
+    display: flex;
+    gap: 8px;
+}
+
+/* 버튼 스타일 */
+.headerBtn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: none;
+
+            background: linear-gradient(135deg,
+                        rgba(255, 255, 255, 1) 0%,
+                        rgba(238, 238, 238, 1) 25%,
+                        rgba(252, 252, 252, 1) 35%,
+                        rgba(235, 235, 235, 1) 50%,
+                        rgba(248, 248, 248, 1) 75%,
+                        rgba(245, 245, 245, 1) 100%);
+    color: #fff;
+    font-size: 18px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    box-shadow:
+        2px 2px 5px rgba(0, 0, 0, 0.6),
+        -2px -2px 5px rgba(255, 255, 255, 0.05);
+
+    transition: 0.15s;
+}
+
+.headerBtn:active {
+    transform: scale(0.92);
+    box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.7);
+}
+
+/* ➕ 버튼만 살짝 강조 */
+#addLineBtn {
+    background: linear-gradient(135deg,
+                #f7d1c4 0%,
+                #e8a39a 25%,
+                #d98b84 50%,
+                #e8a39a 75%,
+                #f7d1c4 100%);
+}
+
+#screenTitle {
+    flex: 1;
+    text-align: center;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
 #noteScreen {
     position: fixed;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
-    background: #fff;
+        background:linear-gradient(
+            135deg,
+            rgba(255,255,255,1) 0%,
+            rgba(238,238,238,1) 25%,
+            rgba(252,252,252,1) 35%,
+            rgba(235,235,235,1) 50%,
+            rgba(248,248,248,1) 75%,
+            rgba(245,245,245,1) 100%
+          );
     z-index: 10000;
     display: none;
     overflow-y: auto;
