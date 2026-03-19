@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ala : RE</title>
+<link rel="stylesheet" href="alare.css">
+</head>
+
+<body>
+
+<aside>
+    <div id="asideTop">
+        <button class="neoBtn">+</button>
+        <button class="neoBtn">💾</button>
+        <button class="neoBtn">⚙</button>
+    </div>
+
+    <div id="libraryNav"></div>
+
+    <div id="asideBottom">
+        <div id="currentPopupName"></div>
+        <br>
+        <div id="bottomBtns">
+            <button class="neoBtn" id="addNoteBtn">+</button>
+            <button class="neoBtn" id="deleteFolderBtn">X</button>
+        </div>
+    </div>
+</aside>
+
+<!-- =-=-=-=-=-=-=-=-=-=-=-= -->
+
+<main id="mainArea"> </main>
+
+<!-- =-=-=-=-=-=-=-=-=-=-=-= -->
+
+<div id="noteScreen">
+    <div id="screenHeader">
+        <button id="addLineBtn">+</button>
+        <button id="eyeBtn">👁</button>
+        <span id="screenTitle">제목</span>
+        <button id="closeScreen">X</button>
+    </div>
+
+    <div id="screenBody"></div>
+</div>
+
+<!-- =-=-=-=-=-=-=-=-=-=-=-= -->
+
+<div id="deleteModal">
+    <div id="deleteBox">
+        <div>삭제된 데이터는 복구가 불가능 합니다
+            정말 삭제하려면 <b>삭제</b> 를 입력하십시오</div>
+        <input id="deleteInput" type="text">
+        <div id="deleteBtns">
+            <button id="confirmDelete">삭제</button>
+            <button id="cancelDelete">취소</button>
+        </div>
+    </div>
+</div>
+
+<div id="btnEditModal">
+    <button id="btnUp">위로</button>
+    <button id="btnDown">아래로</button>
+    <button id="btnRename">이름 변경</button>
+    <button id="btnDelete">삭제</button>
+    <button id="btnClose">닫기</button>
+</div>
+
+
+<div id="modalOverlay"></div>
+
+<div id="toastMsg"></div>
+
+<script src="alare.js"></script>
+</body>
+</html>
