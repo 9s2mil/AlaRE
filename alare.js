@@ -719,6 +719,10 @@ function openScreen(btnData, index) {
 
     screen.style.display = "block"
     history.pushState({ screen: true }, "")
+
+    setTimeout(() => {
+        document.activeElement?.blur()
+    }, 0)
 }
 
     document.getElementById("closeScreen").onclick = () => {
@@ -848,9 +852,11 @@ function renderLines() {
 
         const wrap = document.createElement("div")
 
-wrap.innerHTML = `
+        wrap.innerHTML = `
 <div class="lineControls" style="display:flex; gap:6px; margin-bottom:6px;">
     <button class="miniBtn toggle">▾</button>
+    <button class="miniBtn up">▲</button>
+    <button class="miniBtn down">▼</button>
     <button class="miniBtn left">←</button>
     <button class="miniBtn right">→</button>
     <button class="miniBtn del">X</button>
@@ -859,6 +865,7 @@ wrap.innerHTML = `
 <div class="lineInput" contenteditable="true"
 style="padding-left:${line.level * 20}px"></div>
 `
+
 
         const el = wrap.querySelector(".lineInput")
 
@@ -886,6 +893,62 @@ style="padding-left:${line.level * 20}px"></div>
         if (line.level === 1) el.classList.add("h2")
         if (line.level === 2) el.classList.add("h3")
         if (line.level >= 3) el.classList.add("h4")
+
+        el.addEventListener("keydown", (e) => {
+
+            /* Tab → 들여쓰기 */
+            if (e.key === "Tab" && !e.shiftKey) {
+                e.preventDefault()
+
+                line.level++
+
+                renderLines()
+                focusLine(index)
+            }
+
+            /* Shift + Tab → 내어쓰기 */
+            if (e.key === "Tab" && e.shiftKey) {
+                e.preventDefault()
+
+                line.level = Math.max(0, line.level - 1)
+
+                renderLines()
+                focusLine(index)
+            }
+
+            /* Shift + Enter → 아래 줄 생성 */
+            if (e.key === "Enter" && e.shiftKey) {
+                e.preventDefault()
+
+                lines.splice(index + 1, 0, {
+                    text: "",
+                    level: line.level,
+                    collapsed: false
+                })
+
+                save()
+                renderLines()
+                focusLine(index + 1)
+            }
+
+        })
+
+        function focusLine(i) {
+            const target = document.querySelectorAll(".lineInput")[i]
+            if (!target) return
+
+            target.focus()
+
+            // 커서를 끝으로 보내기
+            const range = document.createRange()
+            const sel = window.getSelection()
+
+            range.selectNodeContents(target)
+            range.collapse(false)
+
+            sel.removeAllRanges()
+            sel.addRange(range)
+        }
 
         const toggleBtn = wrap.querySelector(".toggle")
 
@@ -925,6 +988,26 @@ style="padding-left:${line.level * 20}px"></div>
             save()
         }
 
+        wrap.querySelector(".up").onclick = () => {
+            if (index === 0) return
+
+                ;[lines[index - 1], lines[index]] =
+                    [lines[index], lines[index - 1]]
+
+            save()
+            renderLines()
+        }
+
+        wrap.querySelector(".down").onclick = () => {
+            if (index === lines.length - 1) return
+
+                ;[lines[index + 1], lines[index]] =
+                    [lines[index], lines[index + 1]]
+
+            save()
+            renderLines()
+        }
+
         /* 삭제 */
         wrap.querySelector(".del").onclick = () => {
             lines.splice(index, 1)
@@ -945,6 +1028,7 @@ style="padding-left:${line.level * 20}px"></div>
     })
     applyFilter()
 }
+
 function applyFilter() {
     document.querySelectorAll("#screenBody > div").forEach((wrap, i) => {
 
@@ -956,58 +1040,82 @@ function applyFilter() {
 
         const input = wrap.querySelector(".lineInput")
         const toggleBtn = wrap.querySelector(".toggle")
+        const upBtn = wrap.querySelector(".up")
+        const downBtn = wrap.querySelector(".down")
         const leftBtn = wrap.querySelector(".left")
         const rightBtn = wrap.querySelector(".right")
         const delBtn = wrap.querySelector(".del")
         const controls = wrap.querySelector(".lineControls")
 
-        /* 1️⃣ 필터로 전체 숨김 */
+        const showControls = showLineControls
+
+        /* 1️⃣ 필터 */
         if (!visibleByFilter) {
             wrap.style.display = "none"
             return
         }
 
-        /* 2️⃣ 기본 표시 */
         wrap.style.display = "block"
 
-        /* 3️⃣ 접힘 상태 */
+        /* 2️⃣ 접힘 상태 */
         if (line.collapsed) {
 
             const indent = line.level * 20
 
-            // 데이터 숨김
             if (input) input.style.display = "none"
 
-            // 버튼 숨김
-            if (leftBtn) leftBtn.style.display = "none"
-            if (rightBtn) rightBtn.style.display = "none"
-            if (delBtn) delBtn.style.display = "none"
+            if (controls) {
+                controls.style.display = "flex"
+                controls.style.justifyContent = "flex-start"
+            }
 
-            // ⭐ 토글 버튼 들여쓰기 적용
+            // ⭐ toggle 위치 유지
             if (toggleBtn) {
                 toggleBtn.style.display = "inline-block"
                 toggleBtn.style.marginLeft = indent + "px"
             }
 
-            if (controls) controls.style.justifyContent = "flex-start"
+            // ⭐ 나머지 버튼 처리
+            if (showControls) {
+                if (upBtn) upBtn.style.display = "inline-block"
+                if (downBtn) downBtn.style.display = "inline-block"
+                if (leftBtn) leftBtn.style.display = "inline-block"
+                if (rightBtn) rightBtn.style.display = "inline-block"
+                if (delBtn) delBtn.style.display = "inline-block"
+            } else {
+                if (upBtn) upBtn.style.display = "none"
+                if (downBtn) downBtn.style.display = "none"
+                if (leftBtn) leftBtn.style.display = "none"
+                if (rightBtn) rightBtn.style.display = "none"
+                if (delBtn) delBtn.style.display = "none"
+            }
 
-        } else {
+        }
 
-            // 데이터 표시
+        /* 3️⃣ 일반 상태 */
+        else {
+
             if (input) input.style.display = "block"
 
-            // 버튼 표시
-            if (leftBtn) leftBtn.style.display = "inline-block"
-            if (rightBtn) rightBtn.style.display = "inline-block"
-            if (delBtn) delBtn.style.display = "inline-block"
+            if (controls) {
+                controls.style.display = showControls ? "flex" : "none"
+                controls.style.justifyContent = "flex-start"
+            }
 
-            // ⭐ 토글 버튼 원상복구
+            // ⭐ toggle 원상복구
             if (toggleBtn) {
-                toggleBtn.style.display = "inline-block"
+                toggleBtn.style.display = showControls ? "inline-block" : "none"
                 toggleBtn.style.marginLeft = "0px"
             }
 
-            if (controls) controls.style.justifyContent = "flex-start"
+            if (showControls) {
+                if (upBtn) upBtn.style.display = "inline-block"
+                if (downBtn) downBtn.style.display = "inline-block"
+                if (leftBtn) leftBtn.style.display = "inline-block"
+                if (rightBtn) rightBtn.style.display = "inline-block"
+                if (delBtn) delBtn.style.display = "inline-block"
+            }
+
         }
     })
 }
@@ -1031,15 +1139,10 @@ document.getElementById("eyeBtn").onclick = () => {
 
     showLineControls = !showLineControls
 
-    const controls = document.querySelectorAll(".lineControls")
-
-    controls.forEach(el => {
-        el.style.display = showLineControls ? "flex" : "none"
-    })
-
     localStorage.setItem("showLineControls", showLineControls ? "1" : "0")
-}
 
+    applyFilter() // ⭐ 여기만 호출
+}
 
 document.getElementById("filterBtn").onclick = () => {
 
