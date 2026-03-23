@@ -1195,10 +1195,17 @@ function exportData() {
     const url = URL.createObjectURL(blob)
 
     const a = document.createElement("a")
-    const date = new Date().toISOString().slice(0, 10)
+    const now = new Date()
+
+    const day = now.getDate().toString().padStart(2, "0")
+    const min = now.getMinutes().toString().padStart(2, "0")
+    const sec = now.getSeconds().toString().padStart(2, "0")
+
+    const time = `${day}${min}${sec}`
 
     a.href = url
-    a.download = `outline-secure-${date}.txt`
+    a.download = `ALR-${time}.txt`
+
     a.click()
 
     URL.revokeObjectURL(url)
@@ -1310,3 +1317,98 @@ function normalizeData(data) {
 
     return data
 }
+
+document.addEventListener("keydown", (e) => {
+
+    const screen = document.getElementById("noteScreen")
+    if (screen.style.display !== "block") return
+
+    const active = document.activeElement
+    const tag = active ? active.tagName : ""
+
+    /* =========================
+       1️⃣ ESC 처리
+       ========================= */
+    if (e.key === "Escape") {
+
+        if (
+            active &&
+            (active.classList.contains("lineInput") ||
+                tag === "INPUT" ||
+                tag === "TEXTAREA")
+        ) {
+            active.blur()
+            return
+        }
+
+        document.getElementById("closeScreen").click()
+        return
+    }
+
+    /* =========================
+       🔥 2️⃣ 라인 이동 (여기로 이동!)
+       ========================= */
+    if (e.altKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
+
+        if (!active || !active.classList.contains("lineInput")) return
+
+        const all = Array.from(document.querySelectorAll(".lineInput"))
+        const index = all.indexOf(active)
+        if (index === -1) return
+
+        if (e.key === "ArrowUp") {
+            if (index === 0) return
+
+                ;[lines[index - 1], lines[index]] =
+                    [lines[index], lines[index - 1]]
+        }
+
+        if (e.key === "ArrowDown") {
+            if (index === lines.length - 1) return
+
+                ;[lines[index + 1], lines[index]] =
+                    [lines[index], lines[index + 1]]
+        }
+
+        save()
+        renderLines()
+
+        setTimeout(() => {
+            const newIndex = e.key === "ArrowUp" ? index - 1 : index + 1
+            document.querySelectorAll(".lineInput")[newIndex]?.focus()
+        }, 0)
+
+        e.preventDefault()
+        return
+    }
+
+    /* =========================
+       3️⃣ 입력 중이면 단축키 차단
+       ========================= */
+    if (tag === "INPUT" || tag === "TEXTAREA" || active.classList.contains("lineInput")) {
+        return
+    }
+
+    /* =========================
+       4️⃣ 기본 단축키
+       ========================= */
+    switch (e.key.toLowerCase()) {
+
+        case "q":
+            document.getElementById("addLineBtn").click()
+            break
+
+        case "w":
+            document.getElementById("eyeBtn").click()
+            break
+
+        case "e":
+            document.getElementById("filterBtn").click()
+            break
+
+        case "r":
+            document.getElementById("mapBtn").click()
+            break
+    }
+
+})
