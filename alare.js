@@ -1,229 +1,229 @@
 
-    let currentPopupTitle = null
-    let currentPopupId = null
-    let longPressTimer = null
-    let currentBtnIndex = null
-    const libraryNav = document.getElementById("libraryNav")
-    const addBtn = document.querySelector("#asideTop .neoBtn")
+let currentPopupTitle = null
+let currentPopupId = null
+let longPressTimer = null
+let currentBtnIndex = null
+const libraryNav = document.getElementById("libraryNav")
+const addBtn = document.querySelector("#asideTop .neoBtn")
 
-    let folders = JSON.parse(localStorage.getItem("outlineFolders") || "[]")
+let folders = JSON.parse(localStorage.getItem("outlineFolders") || "[]")
 
-    
-    // 기존 문자열 데이터 대응
-        if (folders.length && typeof folders[0] === "string") {
-            folders = folders.map(name => ({
-                name,
-                buttons: []
-            }))
-        }
 
-    /* ---------- 저장 ---------- */
-    function save() {
-        localStorage.setItem("outlineFolders", JSON.stringify(folders))
-    }
+// 기존 문자열 데이터 대응
+if (folders.length && typeof folders[0] === "string") {
+    folders = folders.map(name => ({
+        name,
+        buttons: []
+    }))
+}
 
-    /* ---------- 화면 렌더 ---------- */
-    function render() {
+/* ---------- 저장 ---------- */
+function save() {
+    localStorage.setItem("outlineFolders", JSON.stringify(folders))
+}
 
-        libraryNav.innerHTML = ""
+/* ---------- 화면 렌더 ---------- */
+function render() {
 
-        folders.forEach((folder, index) => {
+    libraryNav.innerHTML = ""
 
-            const wrap = document.createElement("div")
-            wrap.className = "folderItem"
+    folders.forEach((folder, index) => {
 
-            wrap.innerHTML = `
+        const wrap = document.createElement("div")
+        wrap.className = "folderItem"
+
+        wrap.innerHTML = `
             <button class="folderMini up">▲</button>
             <button class="folderMain">${folder.name}</button>
             <button class="folderMini edit">✎</button>
             <button class="folderMini down">▼</button>
         `
 
-            /* ▲ */
-            wrap.querySelector(".up").onclick = () => {
-                if (index === 0) return
-                    ;[folders[index - 1], folders[index]] = [folders[index], folders[index - 1]]
-                save()
-                render()
-            }
+        /* ▲ */
+        wrap.querySelector(".up").onclick = () => {
+            if (index === 0) return
+                ;[folders[index - 1], folders[index]] = [folders[index], folders[index - 1]]
+            save()
+            render()
+        }
 
-            /* ▼ */
-            wrap.querySelector(".down").onclick = () => {
-                if (index === folders.length - 1) return
-                    ;[folders[index + 1], folders[index]] = [folders[index], folders[index + 1]]
-                save()
-                render()
-            }
+        /* ▼ */
+        wrap.querySelector(".down").onclick = () => {
+            if (index === folders.length - 1) return
+                ;[folders[index + 1], folders[index]] = [folders[index], folders[index + 1]]
+            save()
+            render()
+        }
 
-            /* ✎ */
-            wrap.querySelector(".edit").onclick = () => {
+        /* ✎ */
+        wrap.querySelector(".edit").onclick = () => {
 
-                const newName = prompt("폴더명 수정", folders[index].name)
-                if (!newName) return
+            const newName = prompt("폴더명 수정", folders[index].name)
+            if (!newName) return
 
-                folders[index].name = newName
-                save()
-                render()
-            }
+            folders[index].name = newName
+            save()
+            render()
+        }
 
-            libraryNav.appendChild(wrap)
+        libraryNav.appendChild(wrap)
 
 
-            const mainBtn = wrap.querySelector(".folderMain")
+        const mainBtn = wrap.querySelector(".folderMain")
 
-            mainBtn.onclick = () => {
+        mainBtn.onclick = () => {
 
-                /* 이미 열린 팝업이면 → 전부 닫고 종료 */
-                if (currentPopupId === index) {
-                    document.querySelectorAll("#mainArea .popup").forEach(p => {
-                        p.classList.remove("show")
-                    })
-                    currentPopupId = null
-                    document.getElementById("asideBottom").style.display = "none"
-                    return
-                }
-
-                /* 모든 팝업 닫기 */
-                document.querySelectorAll("#mainArea .popup").forEach(p => {
-                    p.classList.remove("show")
-                })
-
-                /* 팝업 찾기 */
-                let pop = document.querySelector(`#mainArea .popup[data-id="${index}"]`)
-
-                if (!pop) {
-                    pop = document.createElement("div")
-                    pop.className = "popup"
-                    pop.dataset.id = index
-                    document.getElementById("mainArea").appendChild(pop)
-                }
-
-                pop.classList.add("show")
-
-                currentPopupId = index
-
-                renderButtons(index)
-
-                /* asideBottom 표시 */
-                document.getElementById("asideBottom").style.display = "flex"
-                document.getElementById("currentPopupName").textContent = folders[index].name
-                document.getElementById("bottomBtns").classList.remove("hide")
-            }
-        })
-
-    }
-
-    /* ---------- + 생성 ---------- */
-    addBtn.onclick = () => {
-        folders.push({
-            name: "새폴더",
-            buttons: []
-        })
-        save()
-        render()
-    }
-
-    /* ---------- 최초 실행 ---------- */
-    render()
-    const saveBtn = document.querySelectorAll("#asideTop .neoBtn")[1]
-    const settingBtn = document.querySelectorAll("#asideTop .neoBtn")[2]
-
-    saveBtn.onclick = () => {
-
-            if (currentPopupId === "save") {
+            /* 이미 열린 팝업이면 → 전부 닫고 종료 */
+            if (currentPopupId === index) {
                 document.querySelectorAll("#mainArea .popup").forEach(p => {
                     p.classList.remove("show")
                 })
                 currentPopupId = null
                 document.getElementById("asideBottom").style.display = "none"
-                document.getElementById("bottomBtns").classList.remove("hide")
                 return
             }
 
+            /* 모든 팝업 닫기 */
             document.querySelectorAll("#mainArea .popup").forEach(p => {
                 p.classList.remove("show")
             })
 
-            let pop = document.querySelector(`#mainArea .popup[data-id="save"]`)
+            /* 팝업 찾기 */
+            let pop = document.querySelector(`#mainArea .popup[data-id="${index}"]`)
 
             if (!pop) {
                 pop = document.createElement("div")
                 pop.className = "popup"
-                pop.dataset.id = "save"
-                pop.style.background = `
-linear-gradient(
-135deg,
-rgba(95,70,15,0.95) 0%,
-rgba(140,105,25,0.75) 20%,
-rgba(206, 172, 59, 0.98) 50%,
-rgba(150,115,30,0.95) 65%,
-rgba(216,160,17,0.8) 100%
-)`
-                pop.style.backdropFilter = "blur(10px)"
-                pop.innerHTML = `
-        <div class="settingWrap">
-
-<button class="settingBtn" id="exportBtn">
-    저장하기
-</button>
-
-<button class="settingBtn" id="importBtn">
-    불러오기
-</button>
-
-        </div>
-        `
-
+                pop.dataset.id = index
                 document.getElementById("mainArea").appendChild(pop)
-
-                pop.querySelector("#exportBtn").onclick = exportData
-                pop.querySelector("#importBtn").onclick = openImport
-
             }
 
             pop.classList.add("show")
 
-            currentPopupId = "save"
+            currentPopupId = index
 
+            renderButtons(index)
+
+            /* asideBottom 표시 */
             document.getElementById("asideBottom").style.display = "flex"
-            document.getElementById("currentPopupName").textContent = "저장"
-            document.getElementById("bottomBtns").classList.add("hide")
-        }
-        
-    settingBtn.onclick = () => {
-
-        if (currentPopupId === "setting") {
-            document.querySelectorAll("#mainArea .popup").forEach(p => {
-                p.classList.remove("show")
-            })
-            currentPopupId = null
-            document.getElementById("asideBottom").style.display = "none"
+            document.getElementById("currentPopupName").textContent = folders[index].name
             document.getElementById("bottomBtns").classList.remove("hide")
-            return
         }
+    })
 
+}
+
+/* ---------- + 생성 ---------- */
+addBtn.onclick = () => {
+    folders.push({
+        name: "새폴더",
+        buttons: []
+    })
+    save()
+    render()
+}
+
+/* ---------- 최초 실행 ---------- */
+render()
+const saveBtn = document.querySelectorAll("#asideTop .neoBtn")[1]
+const settingBtn = document.querySelectorAll("#asideTop .neoBtn")[2]
+
+saveBtn.onclick = () => {
+
+    if (currentPopupId === "save") {
         document.querySelectorAll("#mainArea .popup").forEach(p => {
             p.classList.remove("show")
         })
+        currentPopupId = null
+        document.getElementById("asideBottom").style.display = "none"
+        document.getElementById("bottomBtns").classList.remove("hide")
+        return
+    }
 
-        let pop = document.querySelector(`#mainArea .popup[data-id="setting"]`)
+    document.querySelectorAll("#mainArea .popup").forEach(p => {
+        p.classList.remove("show")
+    })
 
-        if (!pop) {
-            pop = document.createElement("div")
-            pop.className = "popup"
-            pop.dataset.id = "setting"
-            pop.style.background = `
-linear-gradient(
-135deg,
-rgba(15,15,15,1) 0%,
-rgba(40,40,40,1) 30%,
-rgba(70,70,70,1) 48%,
-rgba(20,20,20,1) 52%,
-rgba(90,90,90,1) 70%,
-rgba(10,10,10,1) 100%
-)`
-            pop.style.backdropFilter = "blur(10px)"
-            pop.innerHTML = `
+    let pop = document.querySelector(`#mainArea .popup[data-id="save"]`)
+
+    if (!pop) {
+        pop = document.createElement("div")
+        pop.className = "popup"
+        pop.dataset.id = "save"
+        pop.style.background = `
+        linear-gradient(
+        135deg,
+        rgba(95,70,15,0.95) 0%,
+        rgba(140,105,25,0.75) 20%,
+        rgba(206, 172, 59, 0.98) 50%,
+        rgba(150,115,30,0.95) 65%,
+        rgba(216,160,17,0.8) 100%
+        )`
+        pop.style.backdropFilter = "blur(10px)"
+        pop.innerHTML = `
+        <div class="settingWrap">
+
+            <button class="settingBtn" id="exportBtn">
+                저장하기
+            </button>
+
+            <button class="settingBtn" id="importBtn">
+                불러오기
+            </button>
+
+        </div>
+        `
+
+        document.getElementById("mainArea").appendChild(pop)
+
+        pop.querySelector("#exportBtn").onclick = exportData
+        pop.querySelector("#importBtn").onclick = openImport
+
+    }
+
+    pop.classList.add("show")
+
+    currentPopupId = "save"
+
+    document.getElementById("asideBottom").style.display = "flex"
+    document.getElementById("currentPopupName").textContent = "저장"
+    document.getElementById("bottomBtns").classList.add("hide")
+}
+
+settingBtn.onclick = () => {
+
+    if (currentPopupId === "setting") {
+        document.querySelectorAll("#mainArea .popup").forEach(p => {
+            p.classList.remove("show")
+        })
+        currentPopupId = null
+        document.getElementById("asideBottom").style.display = "none"
+        document.getElementById("bottomBtns").classList.remove("hide")
+        return
+    }
+
+    document.querySelectorAll("#mainArea .popup").forEach(p => {
+        p.classList.remove("show")
+    })
+
+    let pop = document.querySelector(`#mainArea .popup[data-id="setting"]`)
+
+    if (!pop) {
+        pop = document.createElement("div")
+        pop.className = "popup"
+        pop.dataset.id = "setting"
+        pop.style.background = `
+        linear-gradient(
+        135deg,
+        rgba(15,15,15,1) 0%,
+        rgba(40,40,40,1) 30%,
+        rgba(70,70,70,1) 48%,
+        rgba(20,20,20,1) 52%,
+        rgba(90,90,90,1) 70%,
+        rgba(10,10,10,1) 100%
+        )`
+        pop.style.backdropFilter = "blur(10px)"
+        pop.innerHTML = `
         <div class="settingWrap">
 
             <button class="settingBtn" id="resetAllBtn">
@@ -241,193 +241,250 @@ rgba(10,10,10,1) 100%
             <button class="settingBtn" id="uiResettingBtn">
                 폰트 초기화
             </button>
+
+            <button class="settingBtn" id="shortcutGuideBtn">
+                단축키 가이드
+            </button>
         </div>
     `
 
+        document.getElementById("mainArea").appendChild(pop)
+    }
+
+    pop.classList.add("show")
+
+    currentPopupId = "setting"
+
+    document.getElementById("asideBottom").style.display = "flex"
+    document.getElementById("currentPopupName").textContent = "설정"
+    document.getElementById("bottomBtns").classList.add("hide")
+}
+const delBtn = document.getElementById("deleteFolderBtn")
+const modal = document.getElementById("deleteModal")
+const confirmBtn = document.getElementById("confirmDelete")
+const cancelBtn = document.getElementById("cancelDelete")
+const input = document.getElementById("deleteInput")
+
+delBtn.onclick = () => {
+
+    if (currentPopupId === null) return
+
+    if (currentPopupId === "setting") return
+
+    modal.style.display = "flex"
+    history.pushState({ delmodal: true }, "");
+    input.value = ""
+    input.focus()
+
+}
+
+cancelBtn.onclick = () => {
+    modal.style.display = "none"
+}
+
+confirmBtn.onclick = () => {
+
+    if (input.value !== "삭제") return
+
+    if (currentPopupId === "setting") {
+        modal.style.display = "none"
+        return
+    }
+
+    folders.splice(currentPopupId, 1)
+
+    save()
+    render()
+
+    document.querySelectorAll("#mainArea .popup").forEach(p => {
+        p.remove()
+    })
+
+    currentPopupId = null
+    document.getElementById("asideBottom").style.display = "none"
+
+    modal.style.display = "none"
+
+}
+/* ---------- 전체 초기화 ---------- */
+document.addEventListener("click", e => {
+    if (e.target.id === "resetAllBtn") {
+
+        const ok = confirm(
+            "모든 데이터가 삭제됩니다.\n백업은 하셨습니까?\n정말 진행하시겠습니까?"
+        )
+
+        if (!ok) return
+
+        localStorage.clear()
+        location.reload()
+
+    }
+})
+
+
+/* ---------- 로컬스토리지 잔량 ---------- */
+document.addEventListener("click", e => {
+    if (e.target.id === "storageInfoBtn") {
+
+        let used = 0
+
+        for (let k in localStorage) {
+            if (!localStorage.hasOwnProperty(k)) continue
+            used += ((localStorage[k].length + k.length) * 2)
+        }
+
+        const max = 5 * 1024 * 1024   // 약 5MB 브라우저 기준
+        const percent = ((max - used) / max * 100).toFixed(1)
+
+        const msg =
+            `${(used / 1024).toFixed(1)}KB / ${(max / 1024 / 1024).toFixed(1)}MB\n${percent}% 남았습니다`
+
+        const toast = document.getElementById("toastMsg")
+        toast.innerText = msg
+        toast.classList.add("show")
+
+        setTimeout(() => {
+            toast.classList.remove("show")
+        }, 3000)
+
+    }
+})
+
+document.addEventListener("click", e => {
+    if (e.target.id === "shortcutGuideBtn") {
+
+        let pop = document.querySelector(`#mainArea .popup[data-id="shortcut"]`)
+
+        if (!pop) {
+            pop = document.createElement("div")
+            pop.className = "popup"
+            pop.dataset.id = "shortcut"
+
+            pop.style.background = "rgba(0,0,0,0.85)"
+            pop.style.backdropFilter = "blur(8px)"
+
+            pop.innerHTML = `
+            <div style="padding:20px; line-height:1.8; color:white;">
+                <h3>⌨ 단축키 가이드</h3><br>
+
+                <b>[기본]</b><br>
+                Q : 줄 추가<br>
+                W : 컨트롤 표시/숨김<br>
+                E : 필터 변경<br>
+                R : 전체 펼치기<br><br>
+
+                <b>[라인 편집 중]</b><br>
+                Tab : 들여쓰기<br>
+                Shift + Tab : 내어쓰기<br>
+                Shift + Enter : 아래 줄 추가<br>
+                Alt + Delete : 현재 라인 삭제<br><br>
+
+                <b>[라인 이동]</b><br>
+                Alt + ↑ : 위로 이동<br>
+                Alt + ↓ : 아래로 이동<br><br>
+
+                <b>[기타]</b><br>
+                ESC : 화면 닫기 / 포커스 해제
+            </div>
+            `
             document.getElementById("mainArea").appendChild(pop)
         }
 
+        document.querySelectorAll("#mainArea .popup").forEach(p => {
+            p.classList.remove("show")
+        })
+
         pop.classList.add("show")
 
-        currentPopupId = "setting"
+        currentPopupId = "shortcut"
 
         document.getElementById("asideBottom").style.display = "flex"
-        document.getElementById("currentPopupName").textContent = "설정"
+        document.getElementById("currentPopupName").textContent = "단축키 가이드"
         document.getElementById("bottomBtns").classList.add("hide")
     }
-    const delBtn = document.getElementById("deleteFolderBtn")
-        const modal = document.getElementById("deleteModal")
-        const confirmBtn = document.getElementById("confirmDelete")
-        const cancelBtn = document.getElementById("cancelDelete")
-        const input = document.getElementById("deleteInput")
+})
 
-        delBtn.onclick = () => {
+/* =========================
+   사용자 폰트 시스템 (IndexedDB 버전)
+   ========================= */
 
-            if (currentPopupId === null) return
+/* ---------- IndexedDB 설정 ---------- */
+const FONT_DB_NAME = "FontDB"
+const FONT_STORE = "fonts"
+const FONT_KEY = "userFont"
 
-            if (currentPopupId === "setting") return
+/* ---------- DB 열기 ---------- */
+function openFontDB() {
+    return new Promise((resolve, reject) => {
+        const req = indexedDB.open(FONT_DB_NAME, 1)
 
-            modal.style.display = "flex"
-            history.pushState({ delmodal: true }, "");
-            input.value = ""
-            input.focus()
-
-        }
-
-        cancelBtn.onclick = () => {
-            modal.style.display = "none"
-        }
-
-        confirmBtn.onclick = () => {
-
-            if (input.value !== "삭제") return
-
-            if (currentPopupId === "setting") {
-                modal.style.display = "none"
-                return
-            }
-
-            folders.splice(currentPopupId, 1)
-
-            save()
-            render()
-
-            document.querySelectorAll("#mainArea .popup").forEach(p => {
-                p.remove()
-            })
-
-            currentPopupId = null
-            document.getElementById("asideBottom").style.display = "none"
-
-            modal.style.display = "none"
-
-        }
-        /* ---------- 전체 초기화 ---------- */
-            document.addEventListener("click", e => {
-                if (e.target.id === "resetAllBtn") {
-
-                    const ok = confirm(
-                        "모든 데이터가 삭제됩니다.\n백업은 하셨습니까?\n정말 진행하시겠습니까?"
-                    )
-
-                    if (!ok) return
-
-                    localStorage.clear()
-                    location.reload()
-
-                }
-            })
-
-
-            /* ---------- 로컬스토리지 잔량 ---------- */
-            document.addEventListener("click", e => {
-                if (e.target.id === "storageInfoBtn") {
-
-                    let used = 0
-
-                    for (let k in localStorage) {
-                        if (!localStorage.hasOwnProperty(k)) continue
-                        used += ((localStorage[k].length + k.length) * 2)
-                    }
-
-                    const max = 5 * 1024 * 1024   // 약 5MB 브라우저 기준
-                    const percent = ((max - used) / max * 100).toFixed(1)
-
-                    const msg =
-                        `${(used / 1024).toFixed(1)}KB / ${(max / 1024 / 1024).toFixed(1)}MB\n${percent}% 남았습니다`
-
-                    const toast = document.getElementById("toastMsg")
-                    toast.innerText = msg
-                    toast.classList.add("show")
-
-                    setTimeout(() => {
-                        toast.classList.remove("show")
-                    }, 3000)
-
-                }
-            })
-
-
-    /* =========================
-       사용자 폰트 시스템 (IndexedDB 버전)
-       ========================= */
-
-        /* ---------- IndexedDB 설정 ---------- */
-        const FONT_DB_NAME = "FontDB"
-        const FONT_STORE = "fonts"
-        const FONT_KEY = "userFont"
-
-        /* ---------- DB 열기 ---------- */
-        function openFontDB() {
-            return new Promise((resolve, reject) => {
-                const req = indexedDB.open(FONT_DB_NAME, 1)
-
-                req.onupgradeneeded = () => {
-                    if (!req.result.objectStoreNames.contains(FONT_STORE)) {
-                        req.result.createObjectStore(FONT_STORE)
-                    }
-                }
-
-                req.onsuccess = () => resolve(req.result)
-                req.onerror = () => reject(req.error)
-            })
-        }
-
-        /* ---------- DB 저장 ---------- */
-        async function saveFontToDB(buffer, type) {
-            const db = await openFontDB()
-
-            return new Promise((resolve, reject) => {
-                const tx = db.transaction(FONT_STORE, "readwrite")
-                tx.objectStore(FONT_STORE).put({ buffer, type }, FONT_KEY)
-
-                tx.oncomplete = () => resolve()
-                tx.onerror = () => reject(tx.error)
-            })
-        }
-
-        /* ---------- DB 불러오기 ---------- */
-        async function loadFontFromDB() {
-            try {
-                const db = await openFontDB()
-
-                return new Promise((resolve) => {
-                    const tx = db.transaction(FONT_STORE, "readonly")
-                    const req = tx.objectStore(FONT_STORE).get(FONT_KEY)
-
-                    req.onsuccess = () => resolve(req.result || null)
-                    req.onerror = () => resolve(null)
-                })
-
-            } catch {
-                return null
+        req.onupgradeneeded = () => {
+            if (!req.result.objectStoreNames.contains(FONT_STORE)) {
+                req.result.createObjectStore(FONT_STORE)
             }
         }
 
-        /* ---------- DB 삭제 ---------- */
-        function deleteFontDB() {
-            const req = indexedDB.open(FONT_DB_NAME, 1)
+        req.onsuccess = () => resolve(req.result)
+        req.onerror = () => reject(req.error)
+    })
+}
 
-            req.onsuccess = e => {
-                const db = e.target.result
-                const tx = db.transaction(FONT_STORE, "readwrite")
-                tx.objectStore(FONT_STORE).delete(FONT_KEY)
-            }
-        }
+/* ---------- DB 저장 ---------- */
+async function saveFontToDB(buffer, type) {
+    const db = await openFontDB()
 
-        /* ---------- 폰트 적용 ---------- */
-        function applyUserFont(buffer, type) {
+    return new Promise((resolve, reject) => {
+        const tx = db.transaction(FONT_STORE, "readwrite")
+        tx.objectStore(FONT_STORE).put({ buffer, type }, FONT_KEY)
 
-            const old = document.getElementById("userFontStyle")
-            if (old) old.remove()
+        tx.oncomplete = () => resolve()
+        tx.onerror = () => reject(tx.error)
+    })
+}
 
-            const blob = new Blob([buffer], { type })
-            const url = URL.createObjectURL(blob)
+/* ---------- DB 불러오기 ---------- */
+async function loadFontFromDB() {
+    try {
+        const db = await openFontDB()
 
-            const style = document.createElement("style")
-            style.id = "userFontStyle"
+        return new Promise((resolve) => {
+            const tx = db.transaction(FONT_STORE, "readonly")
+            const req = tx.objectStore(FONT_STORE).get(FONT_KEY)
 
-            style.innerHTML = `
+            req.onsuccess = () => resolve(req.result || null)
+            req.onerror = () => resolve(null)
+        })
+
+    } catch {
+        return null
+    }
+}
+
+/* ---------- DB 삭제 ---------- */
+function deleteFontDB() {
+    const req = indexedDB.open(FONT_DB_NAME, 1)
+
+    req.onsuccess = e => {
+        const db = e.target.result
+        const tx = db.transaction(FONT_STORE, "readwrite")
+        tx.objectStore(FONT_STORE).delete(FONT_KEY)
+    }
+}
+
+/* ---------- 폰트 적용 ---------- */
+function applyUserFont(buffer, type) {
+
+    const old = document.getElementById("userFontStyle")
+    if (old) old.remove()
+
+    const blob = new Blob([buffer], { type })
+    const url = URL.createObjectURL(blob)
+
+    const style = document.createElement("style")
+    style.id = "userFontStyle"
+
+    style.innerHTML = `
     @font-face{
         font-family:"userFont";
         src:url(${url});
@@ -438,268 +495,268 @@ rgba(10,10,10,1) 100%
     }
     `
 
-            document.head.appendChild(style)
+    document.head.appendChild(style)
+}
+
+/* ---------- 폰트 선택 ---------- */
+document.addEventListener("click", e => {
+
+    if (e.target.id === "uiSettingBtn") {
+
+        const input = document.createElement("input")
+        input.type = "file"
+        input.accept = ".ttf,.otf"
+
+        input.onchange = async () => {
+
+            const file = input.files[0]
+            if (!file) return
+
+            const buffer = await file.arrayBuffer()
+
+            // 즉시 적용
+            applyUserFont(buffer, file.type)
+
+            try {
+                await saveFontToDB(buffer, file.type)
+                localStorage.setItem("outlineUserFontEnabled", "1")
+
+                showToast("사용자 폰트 적용됨")
+
+            } catch (e) {
+                console.error("폰트 저장 실패", e)
+                showToast("폰트 저장 실패")
+            }
         }
 
-        /* ---------- 폰트 선택 ---------- */
-        document.addEventListener("click", e => {
-
-            if (e.target.id === "uiSettingBtn") {
-
-                const input = document.createElement("input")
-                input.type = "file"
-                input.accept = ".ttf,.otf"
-
-                input.onchange = async () => {
-
-                    const file = input.files[0]
-                    if (!file) return
-
-                    const buffer = await file.arrayBuffer()
-
-                    // 즉시 적용
-                    applyUserFont(buffer, file.type)
-
-                    try {
-                        await saveFontToDB(buffer, file.type)
-                        localStorage.setItem("outlineUserFontEnabled", "1")
-
-                        showToast("사용자 폰트 적용됨")
-
-                    } catch (e) {
-                        console.error("폰트 저장 실패", e)
-                        showToast("폰트 저장 실패")
-                    }
-                }
-
-                input.click()
-            }
-
-        })
-
-        /* ---------- 폰트 초기화 ---------- */
-        document.addEventListener("click", e => {
-
-            if (e.target.id === "uiResettingBtn") {
-
-                const ok = confirm("폰트를 초기화하시겠습니까?")
-                if (!ok) return
-
-                localStorage.removeItem("outlineUserFontEnabled")
-                deleteFontDB()
-
-                const style = document.getElementById("userFontStyle")
-                if (style) style.remove()
-
-                showToast("폰트 초기화 완료")
-            }
-
-        })
-
-        /* ---------- 시작 시 복원 ---------- */
-        window.addEventListener("load", async () => {
-
-            if (localStorage.getItem("outlineUserFontEnabled") !== "1") return
-
-            const saved = await loadFontFromDB()
-            if (!saved) return
-
-            applyUserFont(saved.buffer, saved.type)
-
-        })
-
-        /* ---------- 토스트 ---------- */
-        function showToast(msg) {
-            const toast = document.getElementById("toastMsg")
-            toast.innerText = msg
-            toast.classList.add("show")
-
-            setTimeout(() => {
-                toast.classList.remove("show")
-            }, 3000)
-        }
-
-    const addNoteBtn = document.getElementById("addNoteBtn")
-
-    addNoteBtn.onclick = () => {
-
-        if (currentPopupId === null) return
-        if (typeof currentPopupId !== "number") return
-
-        const folder = folders[currentPopupId]
-
-        folder.buttons.push({
-            text: "새 버튼"
-            
-        })
-
-        save()
-        renderButtons(currentPopupId)
+        input.click()
     }
 
-    function renderButtons(index) {
+})
 
-        const folder = folders[index]
-        if (!folder.buttons) folder.buttons = []
+/* ---------- 폰트 초기화 ---------- */
+document.addEventListener("click", e => {
 
-        const pop = document.querySelector(`.popup[data-id="${index}"]`)
-        if (!pop) return
+    if (e.target.id === "uiResettingBtn") {
 
-        pop.innerHTML = `<div class="noteWrap"></div>`
-        const wrap = pop.querySelector(".noteWrap")
+        const ok = confirm("폰트를 초기화하시겠습니까?")
+        if (!ok) return
 
-        folder.buttons.forEach((btnData, i) => {
+        localStorage.removeItem("outlineUserFontEnabled")
+        deleteFontDB()
 
-            const btn = document.createElement("button")
-            btn.className = "settingBtn"
-            btn.textContent = btnData.text
+        const style = document.getElementById("userFontStyle")
+        if (style) style.remove()
 
-           let startY = 0
-            let startX = 0
-            let isMove = false
-            let isLongPress = false
-            let timer = null
+        showToast("폰트 초기화 완료")
+    }
 
-            const MOVE_LIMIT = 12   // ← 스크롤 판정 거리 (px)
+})
 
-            const startPress = (e) => {
+/* ---------- 시작 시 복원 ---------- */
+window.addEventListener("load", async () => {
 
-                isMove = false
-                isLongPress = false
+    if (localStorage.getItem("outlineUserFontEnabled") !== "1") return
 
-                const t = e.touches ? e.touches[0] : e
-                startY = t.clientY
-                startX = t.clientX
+    const saved = await loadFontFromDB()
+    if (!saved) return
 
-                timer = setTimeout(() => {
-                    if (isMove) return
-                    isLongPress = true
-                    currentBtnIndex = i
-                    openBtnModal()
-                    history.pushState({ btnmodal: true }, "")
-                }, 400)
-            }
+    applyUserFont(saved.buffer, saved.type)
 
-            const movePress = (e) => {
+})
 
-                const t = e.touches ? e.touches[0] : e
+/* ---------- 토스트 ---------- */
+function showToast(msg) {
+    const toast = document.getElementById("toastMsg")
+    toast.innerText = msg
+    toast.classList.add("show")
 
-                const dy = Math.abs(t.clientY - startY)
-                const dx = Math.abs(t.clientX - startX)
+    setTimeout(() => {
+        toast.classList.remove("show")
+    }, 3000)
+}
 
-                if (dy > MOVE_LIMIT || dx > MOVE_LIMIT) {
-                    isMove = true
-                    clearTimeout(timer)
-                }
-            }
+const addNoteBtn = document.getElementById("addNoteBtn")
 
-            const endPress = () => {
+addNoteBtn.onclick = () => {
 
-                clearTimeout(timer)
+    if (currentPopupId === null) return
+    if (typeof currentPopupId !== "number") return
 
-                if (isMove) return       // ⭐ 스크롤이면 아무것도 안함
-                if (isLongPress) return  // ⭐ 롱프레스면 숏클릭 금지
+    const folder = folders[currentPopupId]
 
-                openScreen(btnData, i)
-            }
+    folder.buttons.push({
+        text: "새 버튼"
 
-            /* 이벤트 */
-            btn.addEventListener("touchstart", startPress)
-            btn.addEventListener("touchmove", movePress)
-            btn.addEventListener("touchend", endPress)
-            btn.addEventListener("touchcancel", () => {
-                clearTimeout(timer)
+    })
+
+    save()
+    renderButtons(currentPopupId)
+}
+
+function renderButtons(index) {
+
+    const folder = folders[index]
+    if (!folder.buttons) folder.buttons = []
+
+    const pop = document.querySelector(`.popup[data-id="${index}"]`)
+    if (!pop) return
+
+    pop.innerHTML = `<div class="noteWrap"></div>`
+    const wrap = pop.querySelector(".noteWrap")
+
+    folder.buttons.forEach((btnData, i) => {
+
+        const btn = document.createElement("button")
+        btn.className = "settingBtn"
+        btn.textContent = btnData.text
+
+        let startY = 0
+        let startX = 0
+        let isMove = false
+        let isLongPress = false
+        let timer = null
+
+        const MOVE_LIMIT = 12   // ← 스크롤 판정 거리 (px)
+
+        const startPress = (e) => {
+
+            isMove = false
+            isLongPress = false
+
+            const t = e.touches ? e.touches[0] : e
+            startY = t.clientY
+            startX = t.clientX
+
+            timer = setTimeout(() => {
+                if (isMove) return
+                isLongPress = true
+                currentBtnIndex = i
+                openBtnModal()
+                history.pushState({ btnmodal: true }, "")
+            }, 400)
+        }
+
+        const movePress = (e) => {
+
+            const t = e.touches ? e.touches[0] : e
+
+            const dy = Math.abs(t.clientY - startY)
+            const dx = Math.abs(t.clientX - startX)
+
+            if (dy > MOVE_LIMIT || dx > MOVE_LIMIT) {
                 isMove = true
-            })
-            btn.addEventListener("mousedown", startPress)
-            btn.addEventListener("mousemove", movePress)
-            btn.addEventListener("mouseup", endPress)
+                clearTimeout(timer)
+            }
+        }
 
-            wrap.appendChild(btn)
+        const endPress = () => {
+
+            clearTimeout(timer)
+
+            if (isMove) return       // ⭐ 스크롤이면 아무것도 안함
+            if (isLongPress) return  // ⭐ 롱프레스면 숏클릭 금지
+
+            openScreen(btnData, i)
+        }
+
+        /* 이벤트 */
+        btn.addEventListener("touchstart", startPress)
+        btn.addEventListener("touchmove", movePress)
+        btn.addEventListener("touchend", endPress)
+        btn.addEventListener("touchcancel", () => {
+            clearTimeout(timer)
+            isMove = true
         })
-    }
-        
-    function openBtnModal() {
-            document.getElementById("modalOverlay").style.display = "block"
+        btn.addEventListener("mousedown", startPress)
+        btn.addEventListener("mousemove", movePress)
+        btn.addEventListener("mouseup", endPress)
 
-        document.getElementById("btnEditModal").style.display = "flex"
-    }
+        wrap.appendChild(btn)
+    })
+}
 
-            const btnUp = document.getElementById("btnUp")
-                const btnDown = document.getElementById("btnDown")
-                const btnRename = document.getElementById("btnRename")
-                const btnDelete = document.getElementById("btnDelete")
-                const btnEditModal  = document.getElementById("btnEditModal")
+function openBtnModal() {
+    document.getElementById("modalOverlay").style.display = "block"
 
-    function closeModal() {
-        document.getElementById("btnEditModal").style.display = "none"
-        document.getElementById("modalOverlay").style.display = "none"
-    }
+    document.getElementById("btnEditModal").style.display = "flex"
+}
 
-    // document.getElementById("modalOverlay").onclick = () => {
-    //         closeModal()
-    //     }
-                btnUp.onclick = () => {
+const btnUp = document.getElementById("btnUp")
+const btnDown = document.getElementById("btnDown")
+const btnRename = document.getElementById("btnRename")
+const btnDelete = document.getElementById("btnDelete")
+const btnEditModal = document.getElementById("btnEditModal")
 
-                        const folder = folders[currentPopupId]
+function closeModal() {
+    document.getElementById("btnEditModal").style.display = "none"
+    document.getElementById("modalOverlay").style.display = "none"
+}
 
-                        if (currentBtnIndex === 0) return
+// document.getElementById("modalOverlay").onclick = () => {
+//         closeModal()
+//     }
+btnUp.onclick = () => {
 
-                            ;[folder.buttons[currentBtnIndex - 1], folder.buttons[currentBtnIndex]] =
-                                [folder.buttons[currentBtnIndex], folder.buttons[currentBtnIndex - 1]]
+    const folder = folders[currentPopupId]
 
-                        currentBtnIndex--
+    if (currentBtnIndex === 0) return
 
-                        save()
-                        renderButtons(currentPopupId)
-                    }
+        ;[folder.buttons[currentBtnIndex - 1], folder.buttons[currentBtnIndex]] =
+            [folder.buttons[currentBtnIndex], folder.buttons[currentBtnIndex - 1]]
 
-                    btnDown.onclick = () => {
+    currentBtnIndex--
 
-                            const folder = folders[currentPopupId]
+    save()
+    renderButtons(currentPopupId)
+}
 
-                            if (currentBtnIndex === folder.buttons.length - 1) return
+btnDown.onclick = () => {
 
-                                ;[folder.buttons[currentBtnIndex + 1], folder.buttons[currentBtnIndex]] =
-                                    [folder.buttons[currentBtnIndex], folder.buttons[currentBtnIndex + 1]]
+    const folder = folders[currentPopupId]
 
-                            currentBtnIndex++
+    if (currentBtnIndex === folder.buttons.length - 1) return
 
-                            save()
-                            renderButtons(currentPopupId)
-                        }
+        ;[folder.buttons[currentBtnIndex + 1], folder.buttons[currentBtnIndex]] =
+            [folder.buttons[currentBtnIndex], folder.buttons[currentBtnIndex + 1]]
 
-                        btnRename.onclick = () => {
+    currentBtnIndex++
 
-                                const folder = folders[currentPopupId]
+    save()
+    renderButtons(currentPopupId)
+}
 
-                                const newName = prompt("이름 변경", folder.buttons[currentBtnIndex].text)
-                                if (!newName) return
+btnRename.onclick = () => {
 
-                                folder.buttons[currentBtnIndex].text = newName
+    const folder = folders[currentPopupId]
 
-                                save()
-                                renderButtons(currentPopupId)
-                            }
+    const newName = prompt("이름 변경", folder.buttons[currentBtnIndex].text)
+    if (!newName) return
+
+    folder.buttons[currentBtnIndex].text = newName
+
+    save()
+    renderButtons(currentPopupId)
+}
 
 
-    btnDelete.onclick = () => {
+btnDelete.onclick = () => {
 
-        const folder = folders[currentPopupId]
+    const folder = folders[currentPopupId]
 
-        folder.buttons.splice(currentBtnIndex, 1)
+    folder.buttons.splice(currentBtnIndex, 1)
 
-        save()
-        renderButtons(currentPopupId)
+    save()
+    renderButtons(currentPopupId)
 
-        closeModal()
-    }
+    closeModal()
+}
 
-    const btnClose = document.getElementById("btnClose")
+const btnClose = document.getElementById("btnClose")
 
-    btnClose.onclick = () => {
-        closeModal()
-    }
+btnClose.onclick = () => {
+    closeModal()
+}
 
 function openScreen(btnData, index) {
 
@@ -715,7 +772,7 @@ function openScreen(btnData, index) {
     lines = btnData.lines
 
     renderLines()
-    updateFilterBtnUI() 
+    updateFilterBtnUI()
 
     screen.style.display = "block"
     history.pushState({ screen: true }, "")
@@ -725,77 +782,77 @@ function openScreen(btnData, index) {
     }, 0)
 }
 
-    document.getElementById("closeScreen").onclick = () => {
-        document.getElementById("noteScreen").style.display = "none"
+document.getElementById("closeScreen").onclick = () => {
+    document.getElementById("noteScreen").style.display = "none"
+}
+
+(function () {
+
+    let backTimer = 0;
+
+    function push() {
+        history.pushState({ app: true }, "");
     }
 
-    (function () {
+    // 최초 1회
+    history.replaceState({ root: true }, "");
+    push();
 
-        let backTimer = 0;
+    window.addEventListener("popstate", function () {
 
-        function push() {
-            history.pushState({ app: true }, "");
+        // 1️⃣ 노트 전체화면
+        const screen = document.getElementById("noteScreen");
+        if (screen.style.display === "block") {
+            screen.style.display = "none";
+            push();
+            return;
         }
 
-        // 최초 1회
-        history.replaceState({ root: true }, "");
+        // 2️⃣ 버튼 편집 모달
+        const btnModal = document.getElementById("btnEditModal");
+        if (btnModal.style.display === "flex") {
+            closeModal();
+            push();
+            return;
+        }
+
+        // 3️⃣ 삭제 모달
+        const del = document.getElementById("deleteModal");
+        if (del.style.display === "flex") {
+            del.style.display = "none";
+            push();
+            return;
+        }
+
+        // 4️⃣ popup 화면
+        const openPopup = document.querySelector("#mainArea .popup.show");
+        if (openPopup) {
+            openPopup.classList.remove("show");
+            currentPopupId = null;
+            document.getElementById("asideBottom").style.display = "none";
+            push();
+            return;
+        }
+
+        // ⭐⭐⭐ 마지막 루트 상태 ⭐⭐⭐
+        let now = Date.now();
+
+        if (now - backTimer < 2000) {
+            // 👉 여기서는 아무것도 안함
+            // → 브라우저 종료됨
+            return;
+        }
+
+        backTimer = now;
+
+        showToast("뒤로가기를 한 번 더 누르면 종료됩니다");
+
+        // 👉 토스트 1회 때만 스택 복구
         push();
 
-        window.addEventListener("popstate", function () {
+    });
 
-            // 1️⃣ 노트 전체화면
-            const screen = document.getElementById("noteScreen");
-            if (screen.style.display === "block") {
-                screen.style.display = "none";
-                push();
-                return;
-            }
-
-            // 2️⃣ 버튼 편집 모달
-            const btnModal = document.getElementById("btnEditModal");
-            if (btnModal.style.display === "flex") {
-                closeModal();
-                push();
-                return;
-            }
-
-            // 3️⃣ 삭제 모달
-            const del = document.getElementById("deleteModal");
-            if (del.style.display === "flex") {
-                del.style.display = "none";
-                push();
-                return;
-            }
-
-            // 4️⃣ popup 화면
-            const openPopup = document.querySelector("#mainArea .popup.show");
-            if (openPopup) {
-                openPopup.classList.remove("show");
-                currentPopupId = null;
-                document.getElementById("asideBottom").style.display = "none";
-                push();
-                return;
-            }
-
-            // ⭐⭐⭐ 마지막 루트 상태 ⭐⭐⭐
-            let now = Date.now();
-
-            if (now - backTimer < 2000) {
-                // 👉 여기서는 아무것도 안함
-                // → 브라우저 종료됨
-                return;
-            }
-
-            backTimer = now;
-
-            showToast("뒤로가기를 한 번 더 누르면 종료됩니다");
-
-            // 👉 토스트 1회 때만 스택 복구
-            push();
-
-        });
-
-    })();
+})();
 
 
 
@@ -853,18 +910,18 @@ function renderLines() {
         const wrap = document.createElement("div")
 
         wrap.innerHTML = `
-<div class="lineControls" style="display:flex; gap:6px; margin-bottom:6px;">
-    <button class="miniBtn toggle">▾</button>
-    <button class="miniBtn up">▲</button>
-    <button class="miniBtn down">▼</button>
-    <button class="miniBtn left">←</button>
-    <button class="miniBtn right">→</button>
-    <button class="miniBtn del">X</button>
-</div>
+        <div class="lineControls" style="display:flex; gap:6px; margin-bottom:6px;">
+            <button class="miniBtn toggle">▾</button>
+            <button class="miniBtn up">▲</button>
+            <button class="miniBtn down">▼</button>
+            <button class="miniBtn left">←</button>
+            <button class="miniBtn right">→</button>
+            <button class="miniBtn del">X</button>
+        </div>
 
-<div class="lineInput" contenteditable="true"
-style="padding-left:${line.level * 20}px"></div>
-`
+        <div class="lineInput" contenteditable="true"
+        style="padding-left:${line.level * 20}px"></div>
+        `
 
 
         const el = wrap.querySelector(".lineInput")
@@ -1383,6 +1440,35 @@ document.addEventListener("keydown", (e) => {
     }
 
     /* =========================
+   🔥 Alt + Delete → 현재 라인 삭제
+   ========================= */
+    if (e.altKey && (e.key === "Delete" || e.key === "Del")) {
+
+        const active = document.activeElement
+
+        if (!active || !active.classList.contains("lineInput")) return
+
+        const all = Array.from(document.querySelectorAll(".lineInput"))
+        const index = all.indexOf(active)
+        if (index === -1) return
+
+        lines.splice(index, 1)
+
+        save()
+        renderLines()
+
+        // 다음 포커스 이동 (자연스럽게)
+        setTimeout(() => {
+            const next = document.querySelectorAll(".lineInput")[index]
+                || document.querySelectorAll(".lineInput")[index - 1]
+
+            next?.focus()
+        }, 0)
+
+        e.preventDefault()
+        return
+    }
+    /* =========================
        3️⃣ 입력 중이면 단축키 차단
        ========================= */
     if (tag === "INPUT" || tag === "TEXTAREA" || active.classList.contains("lineInput")) {
@@ -1392,23 +1478,30 @@ document.addEventListener("keydown", (e) => {
     /* =========================
        4️⃣ 기본 단축키
        ========================= */
-    switch (e.key.toLowerCase()) {
+    if (e.altKey) {
 
-        case "q":
-            document.getElementById("addLineBtn").click()
-            break
+        switch (e.key.toLowerCase()) {
 
-        case "w":
-            document.getElementById("eyeBtn").click()
-            break
+            case "q":
+                document.getElementById("addLineBtn").click()
+                break
 
-        case "e":
-            document.getElementById("filterBtn").click()
-            break
+            case "w":
+                document.getElementById("eyeBtn").click()
+                break
 
-        case "r":
-            document.getElementById("mapBtn").click()
-            break
+            case "e":
+                document.getElementById("filterBtn").click()
+                break
+
+            case "r":
+                document.getElementById("mapBtn").click()
+                break
+        }
     }
 
+})
+
+document.getElementById("screenHeader").addEventListener("click", e => {
+    e.stopPropagation()
 })

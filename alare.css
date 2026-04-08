@@ -105,7 +105,14 @@ background: linear-gradient(135deg,
 .popup.show {
     display: block;
 }
+#screenHeader {
+    z-index: 10;
+}
 
+#screenBody {
+    position: relative;
+    z-index: 1;
+}
 
 #deleteModal {
 position: fixed;
