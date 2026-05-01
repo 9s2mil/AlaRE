@@ -1,8 +1,7 @@
-// ① 캐시 이름 변경 
 const CACHE_NAME = "Ala-Re-v1";
 
-// ② 캐시 목록은 최신 파일로 
 const FILES_TO_CACHE = [
+  "/",
   "index.html",
   "manifest.json",
   "alare.css",
@@ -21,11 +20,16 @@ self.addEventListener("fetch", (event) => {
 
   if (isDoc || isCode) {
     event.respondWith(
-      fetch(req).then(res => {
-        const copy = res.clone();
-        caches.open(CACHE_NAME).then(c => c.put(req, copy));
-        return res;
-      }).catch(() => caches.match(req))
+      caches.match(req).then(cached => {
+        return cached || fetch(req).then(res => {
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then(c => c.put(req, copy));
+          return res;
+        }).catch(() => {
+          // 🔥 추가: 오프라인 fallback 핵심
+          return caches.match("/") || caches.match("index.html");
+        });
+      })
     );
     return;
   }
@@ -43,10 +47,21 @@ self.addEventListener("fetch", (event) => {
 });
 
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(FILES_TO_CACHE)));
+  e.waitUntil(
+    caches.open(CACHE_NAME).then(c => c.addAll(FILES_TO_CACHE))
+  );
   self.skipWaiting();
 });
+
 self.addEventListener("activate", e => {
-  e.waitUntil(caches.keys().then(keys => Promise.all(keys.map(k => k !== CACHE_NAME && caches.delete(k)))));
+  e.waitUntil(
+    caches.keys().then(keys =>
+      Promise.all(
+        keys.map(k => {
+          if (k !== CACHE_NAME) return caches.delete(k);
+        })
+      )
+    )
+  );
   self.clients.claim();
 });
